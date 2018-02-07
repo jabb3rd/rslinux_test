@@ -69,10 +69,10 @@ int main()
 
 	bytes = 0;
 	result = GetParam_Pointer(stCredentialsPassword, &buf, 4096, &bytes);
-	fprintf(stderr, "[%s] size = %lu value = '%s'\n", result ? "+": "-", bytes, buf);
+	fprintf(stderr, "[%s] GetParam(stCredentialsPassword): size = %lu value = '%s'\n", result ? "+": "-", bytes, buf);
 	bytes = 0;
 	GetParam_Pointer(stCredentialsUsername, &buf, 4096, &bytes);
-	fprintf(stderr, "[%s] size = %lu value = '%s'\n", result ? "+": "-", bytes, buf);
+	fprintf(stderr, "[%s] GetParam(stCredentialsUsername): size = %lu value = '%s'\n", result ? "+": "-", bytes, buf);
 
 	fprintf(stderr, "[%s] SetParam(stSetTableDataCallback)\n", SetParam_Pointer(stSetTableDataCallback, &set_callback) ? "+": "-");
 
