@@ -15,6 +15,7 @@ bool lib_loader(void *handle)
 	ScanRouter = dlsym(handle, "ScanRouter");
 	FreeRouter = dlsym(handle, "FreeRouter");
 	StopRouter = dlsym(handle, "StopRouter");
+	IsRouterStopping = dlsym(handle, "IsRouterStopping");
 	SetParam_Word = dlsym(handle, "SetParamA");
 	SetParam_Bool = dlsym(handle, "SetParamA");
 	SetParam_Pointer = dlsym(handle, "SetParamA");
