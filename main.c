@@ -25,9 +25,10 @@ int main()
 		dlclose(handle);
 		return -1;
 	} else
-		printf("[+] Initialize()\n");
+		fprintf(stderr, "[+] Initialize()\n");
 
 	dword count = 0;
+
 	if (!GetModuleCount(&count))
 		fprintf(stderr, "GetModuleCount() FAILED!\n");
 	else
