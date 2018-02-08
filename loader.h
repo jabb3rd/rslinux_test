@@ -7,8 +7,8 @@
 
 typedef int bool;
 typedef unsigned char byte;
-typedef unsigned int word;
-typedef unsigned long dword;
+typedef unsigned short word;
+typedef unsigned int dword;
 
 /* A module description structure */
 typedef struct {
@@ -25,6 +25,7 @@ enum _st_enum {
 	stSetTableDataCallback,
 	stUserAgent,
 	stUseCustomPage,
+	stCustomPage,
 	stDualAuthCheck,
 	stPairsBasic,
 	stPairsDigest,
