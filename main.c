@@ -8,6 +8,12 @@ void set_callback(dword row, char *name, char *value)
 	printf("#%lu: '%s' = '%s'\n", row, name, value);
 }
 
+void write_log_callback(char *str, byte verbosity)
+{
+	fprintf(stderr, "LOG(%d): %s\n", (int) verbosity, str);
+}
+
+
 int main()
 {
 	void *handle = dlopen("liblibrouter.so", RTLD_LAZY);
@@ -46,6 +52,8 @@ int main()
 	int False = FALSE;
 	int True = TRUE;
 	bool result;
+	dword result_dw;
+	int ResultCode;
 
 	char *creds = "test\ttest\r\n";
 	char *user = "test";
@@ -54,11 +62,18 @@ int main()
 	char buf[4096];
 	dword bytes;
 
+	fprintf(stderr, "[%s] SetParam(stEnableDebug)\n", SetParam_Bool(stEnableDebug, FALSE) ? "+": "-");
+	fprintf(stderr, "[%s] GetParam(stEnableDebug)\n", GetParam_Bool(stEnableDebug, &result, sizeof(result), &bytes) ? "+": "-");
+	printf("stEnableDebug = %s (%lu bytes)\n", result ? "TRUE": "FALSE", bytes);
+
+	fprintf(stderr, "[%s] SetParam(stDebugVerbosity)\n", SetParam_Word(stDebugVerbosity, 15) ? "+": "-");
+	fprintf(stderr, "[%s] GetParam(stDebugVerbosity)\n", GetParam_DWord(stDebugVerbosity, &result_dw, sizeof(result_dw), &bytes) ? "+": "-");
+	printf("stDebugVerbosity = %lu (%lu bytes)\n", result_dw, bytes);
+
 	fprintf(stderr, "[%s] SetParam(stProxyType)\n", SetParam_Word(stProxyType, 0) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stUserAgent)\n", SetParam_Pointer(stUserAgent, "Mozilla/5.0 (Windows NT 5.1; rv:9.0.1) Gecko/20100101 Firefox/9.0.1") ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stUseCustomPage)\n", SetParam_Pointer(stUseCustomPage, &False) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stDualAuthCheck)\n", SetParam_Pointer(stDualAuthCheck, &False) ? "+": "-");
-
 
 	fprintf(stderr, "[%s] SetParam(stPairsBasic)\n", SetParam_Pointer(stPairsBasic, creds) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stPairsDigest)\n", SetParam_Pointer(stPairsDigest, creds) ? "+": "-");
@@ -68,13 +83,14 @@ int main()
 	fprintf(stderr, "[%s] PrepareRouter\n", PrepareRouter(123, 0xac1c006e, 80, &router) ? "+": "-");
 
 	bytes = 0;
-	result = GetParam_Pointer(stCredentialsPassword, &buf, 4096, &bytes);
+	result = GetParam_Pointer(stCredentialsPassword, &buf, sizeof(buf), &bytes);
 	fprintf(stderr, "[%s] GetParam(stCredentialsPassword): size = %lu value = '%s'\n", result ? "+": "-", bytes, buf);
 	bytes = 0;
-	GetParam_Pointer(stCredentialsUsername, &buf, 4096, &bytes);
+	GetParam_Pointer(stCredentialsUsername, &buf, sizeof(buf), &bytes);
 	fprintf(stderr, "[%s] GetParam(stCredentialsUsername): size = %lu value = '%s'\n", result ? "+": "-", bytes, buf);
 
 	fprintf(stderr, "[%s] SetParam(stSetTableDataCallback)\n", SetParam_Pointer(stSetTableDataCallback, &set_callback) ? "+": "-");
+	fprintf(stderr, "[%s] SetParam(stWriteLogCallback)\n", SetParam_Pointer(stWriteLogCallback, &write_log_callback) ? "+": "-");
 
 	ScanRouter(router);
 	FreeRouter(router);
