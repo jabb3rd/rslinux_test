@@ -62,7 +62,6 @@ typedef bool (*GetParam_Pointer_t)(dword st, void *pointer, dword size, dword *o
 typedef bool (*GetParam_Bool_t)(dword st, bool *value, dword size, dword *out_length);
 
 typedef bool (*SetParam_Word_t)(dword st, word value);
-typedef bool (*SetParam_Bool_t)(dword st, bool value);
 typedef bool (*SetParam_Pointer_t)(dword st, void *pointer);
 
 Initialize_t Initialize;
@@ -79,7 +78,8 @@ GetParam_DWord_t GetParam_DWord;
 GetParam_Pointer_t GetParam_Pointer;
 GetParam_Bool_t GetParam_Bool;
 SetParam_Word_t SetParam_Word;
-SetParam_Bool_t SetParam_Bool;
 SetParam_Pointer_t SetParam_Pointer;
+
+bool SetParam_Bool(dword st, bool value);
 
 #endif
