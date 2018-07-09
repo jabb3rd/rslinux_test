@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <arpa/inet.h>
 #include <dlfcn.h>
 #include "loader.h"
@@ -16,38 +17,38 @@ void write_log_callback(char *str, byte verbosity)
 	fprintf(stderr, "LOG(%d): %s\n", (int) verbosity, str);
 }
 
-struct in_addr parse_args(int argc, char *argv[])
-{
-    char * wordlist_file = NULL;
-    struct in_addr ip;
-//    fprintf(stderr, "Argc num: %d\tArgv[1]: %s\t\tArgv[2]: %s\n", argc, argv[1], argv[2]);
-
-    for (int opt = 1; opt < argc; opt++) {
-//        fprintf(stderr, "Arg %d: %s\n", opt, argv[opt]);
-        if (strstr(argv[opt], "-w") != NULL) {
-            opt++; // Switch to next arg
-            wordlist_file = argv[opt];
-        }
-        if (strstr(argv[opt], "-t") != NULL) {
-            opt++; // Switch to next arg
-            if (inet_aton(argv[opt], &ip) == 0) {
-                fprintf(stderr, "inet_aton error\n");
-                exit(-1);
-            } else {
-                fprintf(stderr, "Using IP: %s\n", inet_ntoa( *(struct in_addr *) &ip.s_addr));
-            }
-        }
-    }
-
-    fprintf(stderr, "w: %s\tt: %d\n", wordlist_file, ntohl(ip.s_addr));
-    return ip;
-};
-
-
 int main(int argc, char *argv[])
 {
+    globalArgs.inputWordList = "./auth_basic.txt";
+    globalArgs.target_ip = "192.168.0.1";
+
     struct in_addr target;
-    target = parse_args(argc, argv);
+
+    int opt = 0;
+
+    opt = getopt( argc, argv, optString );
+    while ( opt != -1 ) { /* Last exit code is -1 */
+        switch( opt ) {
+            case 'w':
+                globalArgs.inputWordList = optarg;
+                printf("bla");
+                break;
+            case 't':
+                globalArgs.target_ip = optarg;
+                inet_aton(globalArgs.target_ip, &target);
+                fprintf(stderr, "Target IP: %s\n", globalArgs.target_ip);
+                break;
+            case 'h':
+            case '?':
+                fprintf(stderr, "Usage: ./rs.bin -t 192.168.0.1 <-w ~/path/to/wordlist.txt>");
+                break;
+            default:
+                fprintf(stderr, "Wtf?");
+                exit(10);
+        }
+        opt = getopt(argc, argv, optString);
+    }
+
     /* Load Router Scan library you need to ask Stas'M about it */
 	void *handle = dlopen("liblibrouter.so", RTLD_LAZY);
 	if (!handle) {
@@ -114,7 +115,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "[%s] SetParam(stCredentialsPassword)\n", SetParam_Pointer(stCredentialsPassword, pass) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stUseCredentials)\n", SetParam_Pointer(stUseCredentials, creds) ? "+": "-");
 
-    unsigned int target_hex_ip = 0xc0a80101;
+    unsigned int target_hex_ip = 0xc0a80001;
     char * s_ip;
     s_ip = inet_ntoa(*(struct in_addr *) &target.s_addr);
     target_hex_ip = ntohl(target.s_addr);
