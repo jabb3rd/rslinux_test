@@ -83,4 +83,11 @@ SetParam_Pointer_t SetParam_Pointer;
 
 bool SetParam_Bool(dword st, bool value);
 
+struct globalArgs_t {
+    char *inputWordList; 	/* Arg -w */
+    char *target_ip;		/* Arg -t */
+} globalArgs;
+
+static const char *optString = "w:t:h?";
+
 #endif
