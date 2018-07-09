@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 #include <dlfcn.h>
 #include "loader.h"
 
@@ -55,6 +56,8 @@ int main()
 	dword result_dw;
 	int ResultCode;
 
+	unsigned int target_hex_ip;
+	struct in_addr target;
 	char *creds = "test\ttest\r\n";
 	char *user = "test";
 	char *pass = "test";
@@ -62,11 +65,11 @@ int main()
 	char buf[4096];
 	dword bytes;
 
-	fprintf(stderr, "[%s] SetParam(stEnableDebug)\n", SetParam_Bool(stEnableDebug, FALSE) ? "+": "-");
+	fprintf(stderr, "[%s] SetParam(stEnableDebug)\n", SetParam_Bool(stEnableDebug, TRUE) ? "+": "-");
 	fprintf(stderr, "[%s] GetParam(stEnableDebug)\n", GetParam_Bool(stEnableDebug, &result, sizeof(result), &bytes) ? "+": "-");
 	printf("stEnableDebug = %s (%u bytes)\n", result ? "TRUE": "FALSE", bytes);
 
-	fprintf(stderr, "[%s] SetParam(stDebugVerbosity)\n", SetParam_Word(stDebugVerbosity, 15) ? "+": "-");
+	fprintf(stderr, "[%s] SetParam(stDebugVerbosity)\n", SetParam_Word(stDebugVerbosity, 1) ? "+": "-");
 	fprintf(stderr, "[%s] GetParam(stDebugVerbosity)\n", GetParam_DWord(stDebugVerbosity, &result_dw, sizeof(result_dw), &bytes) ? "+": "-");
 	printf("stDebugVerbosity = %u (%u bytes)\n", result_dw, bytes);
 
@@ -77,23 +80,29 @@ int main()
 
 	//fprintf(stderr, "[%s] SetParam(stPairsBasic)\n", SetParam_Pointer(stPairsBasic, creds) ? "+": "-");
 	//fprintf(stderr, "[%s] SetParam(stPairsDigest)\n", SetParam_Pointer(stPairsDigest, creds) ? "+": "-");
-        fprintf(stderr, "[%s] SetParam(stPairsForm)\n", SetParam_Pointer(stPairsForm, creds) ? "+": "-");
+	fprintf(stderr, "[%s] SetParam(stPairsForm)\n", SetParam_Pointer(stPairsForm, creds) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stCredentialsUsername)\n", SetParam_Pointer(stCredentialsUsername, user) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stCredentialsPassword)\n", SetParam_Pointer(stCredentialsPassword, pass) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stUseCredentials)\n", SetParam_Pointer(stUseCredentials, creds) ? "+": "-");
-	fprintf(stderr, "[%s] PrepareRouter\n", PrepareRouter(123, 0xac1c006e, 80, &router) ? "+": "-");
+
+//	target_hex_ip = 0xbcf2bfc6;
+	target_hex_ip = 0xc0a80101;
+	target.s_addr = htonl(target_hex_ip);
+	char *s_ip = inet_ntoa(target);
+	fprintf(stderr, "[%s] PrepareRouter %s\n", PrepareRouter(123, target_hex_ip, 80, &router) ? "+": "-", s_ip);
 
 	bytes = 0;
 	result = GetParam_Pointer(stCredentialsPassword, &buf, sizeof(buf), &bytes);
 	fprintf(stderr, "[%s] GetParam(stCredentialsPassword): size = %u value = '%s'\n", result ? "+": "-", bytes, buf);
 	bytes = 0;
-	GetParam_Pointer(stCredentialsUsername, &buf, sizeof(buf), &bytes);
+	result = GetParam_Pointer(stCredentialsUsername, &buf, sizeof(buf), &bytes);
 	fprintf(stderr, "[%s] GetParam(stCredentialsUsername): size = %u value = '%s'\n", result ? "+": "-", bytes, buf);
 
 	fprintf(stderr, "[%s] SetParam(stSetTableDataCallback)\n", SetParam_Pointer(stSetTableDataCallback, &set_callback) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stWriteLogCallback)\n", SetParam_Pointer(stWriteLogCallback, &write_log_callback) ? "+": "-");
 
-	ScanRouter(router);
+	result = ScanRouter(router);
+	fprintf(stderr, "[%s] Scan over\n", result ? "+": "-");
 	FreeRouter(router);
 
 	dlclose(handle);
