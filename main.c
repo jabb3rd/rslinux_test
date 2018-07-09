@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <arpa/inet.h>
 #include <dlfcn.h>
 #include "loader.h"
 
 void set_callback(dword row, char *name, char *value)
 {
-	printf("#%u: '%s' = '%s'\n", row, name, value);
+	printf("#%u:>>> '%s' = '%s'\n", row, name, value);
 }
 
 void write_log_callback(char *str, byte verbosity)
@@ -14,9 +16,39 @@ void write_log_callback(char *str, byte verbosity)
 	fprintf(stderr, "LOG(%d): %s\n", (int) verbosity, str);
 }
 
-
-int main()
+struct in_addr parse_args(int argc, char *argv[])
 {
+    char * wordlist_file = NULL;
+    struct in_addr ip;
+//    fprintf(stderr, "Argc num: %d\tArgv[1]: %s\t\tArgv[2]: %s\n", argc, argv[1], argv[2]);
+
+    for (int opt = 1; opt < argc; opt++) {
+//        fprintf(stderr, "Arg %d: %s\n", opt, argv[opt]);
+        if (strstr(argv[opt], "-w") != NULL) {
+            opt++; // Switch to next arg
+            wordlist_file = argv[opt];
+        }
+        if (strstr(argv[opt], "-t") != NULL) {
+            opt++; // Switch to next arg
+            if (inet_aton(argv[opt], &ip) == 0) {
+                fprintf(stderr, "inet_aton error\n");
+                exit(-1);
+            } else {
+                fprintf(stderr, "Using IP: %s\n", inet_ntoa( *(struct in_addr *) &ip.s_addr));
+            }
+        }
+    }
+
+    fprintf(stderr, "w: %s\tt: %d\n", wordlist_file, ntohl(ip.s_addr));
+    return ip;
+};
+
+
+int main(int argc, char *argv[])
+{
+    struct in_addr target;
+    target = parse_args(argc, argv);
+    /* Load Router Scan library you need to ask Stas'M about it */
 	void *handle = dlopen("liblibrouter.so", RTLD_LAZY);
 	if (!handle) {
 		fprintf(stderr, "%s\n", dlerror());
@@ -55,11 +87,8 @@ int main()
 	bool result;
 	dword result_dw;
 	int ResultCode;
-
-	unsigned int target_hex_ip;
-	struct in_addr target;
 	char *creds = "test\ttest\r\n";
-	char *user = "test";
+	char *user = "admin";
 	char *pass = "test";
 
 	char buf[4096];
@@ -85,11 +114,12 @@ int main()
 	fprintf(stderr, "[%s] SetParam(stCredentialsPassword)\n", SetParam_Pointer(stCredentialsPassword, pass) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stUseCredentials)\n", SetParam_Pointer(stUseCredentials, creds) ? "+": "-");
 
-//	target_hex_ip = 0xbcf2bfc6;
-	target_hex_ip = 0xc0a80101;
-	target.s_addr = htonl(target_hex_ip);
-	char *s_ip = inet_ntoa(target);
-	fprintf(stderr, "[%s] PrepareRouter %s\n", PrepareRouter(123, target_hex_ip, 80, &router) ? "+": "-", s_ip);
+	unsigned int target_hex_ip = 0xc0a80101;
+    char * s_ip;
+    s_ip = inet_ntoa(*(struct in_addr *) &target.s_addr);
+    target_hex_ip = ntohl(target.s_addr);
+    int row = 1;
+    fprintf(stderr, "[%s] PrepareRouter %s\n", PrepareRouter(row, target_hex_ip, 80, &router) ? "+": "-", s_ip);
 
 	bytes = 0;
 	result = GetParam_Pointer(stCredentialsPassword, &buf, sizeof(buf), &bytes);
@@ -101,8 +131,7 @@ int main()
 	fprintf(stderr, "[%s] SetParam(stSetTableDataCallback)\n", SetParam_Pointer(stSetTableDataCallback, &set_callback) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stWriteLogCallback)\n", SetParam_Pointer(stWriteLogCallback, &write_log_callback) ? "+": "-");
 
-	result = ScanRouter(router);
-	fprintf(stderr, "[%s] Scan over\n", result ? "+": "-");
+	ScanRouter(router);
 	FreeRouter(router);
 
 	dlclose(handle);
