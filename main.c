@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "[%s] SetParam(stCredentialsPassword)\n", SetParam_Pointer(stCredentialsPassword, pass) ? "+": "-");
 	fprintf(stderr, "[%s] SetParam(stUseCredentials)\n", SetParam_Pointer(stUseCredentials, creds) ? "+": "-");
 
-	unsigned int target_hex_ip = 0xc0a80101;
+    unsigned int target_hex_ip = 0xc0a80101;
     char * s_ip;
     s_ip = inet_ntoa(*(struct in_addr *) &target.s_addr);
     target_hex_ip = ntohl(target.s_addr);
