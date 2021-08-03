@@ -7,7 +7,7 @@ Get source
 
 `git clone https://github.com/itJunky/rslinux_test.git`
 
-Get `liblibrouter.so` (Ask Stas'M) and copy to rslinux_test directory
+Get `liblibrouter.so` (ask in [Router Scan community](https://t.me/routerscan)) and copy to rslinux_test directory
 
 ## Compilation
 
